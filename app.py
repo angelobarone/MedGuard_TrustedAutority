@@ -1,36 +1,71 @@
 import hashlib
+import json
+import pickle
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response
+from flask_cors import CORS
 from phe import paillier
-from Crypto.Protocol.KDF import PBKDF2
-from Crypto.Cipher import AES
-from Crypto.Random import get_random_bytes
-import base64
+from math import gcd
 
 import userModels
-from userModels import validate_user
+
 
 app = Flask(__name__)
+CORS(app)
 userModels.check_database()
+
+#Generazione chiavi
 public, private = paillier.generate_paillier_keypair()
 
-@app.route('/getPublicKey', methods=['GET'])
+#PRIMA DI INVIARE, LA CHIAVE VIENE SERIALIZZATA
+def serialize_public_key():
+    return {
+        "n": str(public.n),
+        "g": str(public.g)
+    }
+
+def serialize_private_key():
+    return {
+        "n": str(public.n),
+        "g": str(public.g),
+        "p": str(private.p),
+        "q": str(private.q)
+    }
+
+@app.route('/getPublicKey', methods=['POST'])
 def pubkey():
-    return jsonify({"success": True, "public_key": public})
+    try:
+        if not request.is_json:
+            return jsonify({"error": "Richiesta non in formato JSON"}), 400
+
+        data = request.get_json()
+        username = data.get('username')
+
+        if not username:
+            return jsonify({"error": "Username mancante"}), 400
+
+        return jsonify(serialize_public_key()), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/getPrivateKey', methods=['POST'])
 def privkey():
-    username = request.get_json().get("username")
-    password = validate_user(username)
-    if password:
-        salt = hashlib.sha256(username.encode()).digest()
-        key = PBKDF2(password, salt, dkLen=32, count=100_000)
-        cipher = AES.new(key, AES.MODE_GCM)
-        ciphertext, tag = cipher.encrypt_and_digest(private)
-        nonce = cipher.nonce
-        return jsonify({"success": True, "ciphertext": base64.b64encode(ciphertext).decode(), "tag": base64.b64encode(tag).decode(), "nonce": base64.b64encode(nonce).decode()})
-    else:
-        return None
+    try:
+        if not request.is_json:
+            return jsonify({"error": "Richiesta non in formato JSON"}), 400
+
+        data = request.get_json()
+        username = data.get('username')
+
+        if not username:
+            return jsonify({"error": "Username mancante"}), 400
+
+        return jsonify(serialize_private_key()), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 @app.route('/addAuthUser', methods=['POST'])
 def addauthuser():
