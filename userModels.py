@@ -39,7 +39,7 @@ def validate_user(username):
     with app.app_context():
         user = User.query.filter_by(username=username).first()
         if user:
-            return user.password_hash
+            return user.id
         else:
             return False
 
