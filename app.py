@@ -1,25 +1,26 @@
 import base64
 import hashlib
 import json
-import pickle
-import secrets
-from datetime import datetime, timedelta
-
 from Crypto.Cipher import AES
-from flask import Flask, request, jsonify, Response
+from flask import Flask, request, jsonify
 from flask_cors import CORS
-from phe import paillier
-
+import keyStorage
 import userModels
 from userModels import validate_user
 from tokenManager import token_manager
+from extensions import db
 
 app = Flask(__name__)
 CORS(app)
-userModels.check_database()
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///thrusted.db'  # database SQLite in un file locale
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db.init_app(app)
+with app.app_context():
+    db.create_all()
+userModels.check_database(app)
 
 #Generazione chiavi
-public, private = paillier.generate_paillier_keypair()
+public, private = keyStorage.get_key(app)
 
 #PRIMA DI INVIARE, LA CHIAVE VIENE SERIALIZZATA
 def serialize_public_key():
@@ -77,7 +78,7 @@ def privkey():
         data = request.get_json()
         username = data.get('username')
         token = data.get('token')
-        user_id = validate_user(username)
+        user_id = validate_user(app, username)
 
         if user_id:
             if token_manager.verify_token(token):
@@ -95,14 +96,14 @@ def privkey():
 @app.route('/addAuthUser', methods=['POST'])
 def addauthuser():
     data = request.get_json()
-    userModels.create_user(data.get("username"), data.get("password"))
+    userModels.create_user(app, data.get("username"), data.get("password"))
     return jsonify({"message": "Utente creato correttamente."})
 
 @app.route('/setToken', methods=['POST'])
 def settoken():
     data = request.get_json()
     username = data.get("username")
-    user_id = validate_user(username)
+    user_id = validate_user(app, username)
     if user_id:
         token = token_manager.generate_token(user_id)
         return jsonify({"success": True, "token": token})
