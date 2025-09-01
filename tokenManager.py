@@ -16,12 +16,10 @@ class TokenManager:
         #Cleanup di routine
         self.cleanup_expired_tokens()
 
-        """Genera un nuovo token per l'utente specificato."""
         # Parte randomica
         random_part = secrets.token_urlsafe(24)
         created = datetime.now()
         timestamp = int(created.timestamp())
-
         # Firma HMAC
         data = f"{user_id}{random_part}{timestamp}"
 
@@ -29,17 +27,13 @@ class TokenManager:
             key = self.secret_key.encode()
         else:
             key = self.secret_key
-
         signature = hmac.new(
             key,
             data.encode(),
             hashlib.sha256
         ).hexdigest()[:16]
-
         # Token completo
         token = f"{user_id}|{random_part}|{timestamp}|{signature}"
-
-        # Salvo con scadenza
         expiration = created + timedelta(hours=expires_hours)
         self.tokens[token] = (user_id, expiration)
 
