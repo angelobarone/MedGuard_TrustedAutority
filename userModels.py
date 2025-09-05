@@ -34,6 +34,7 @@ def check_database(app):
     with app.app_context():
         if not os.path.exists("instance/users.db"):
             db.create_all()
+            initialize_database(app)
 
 def validate_user(app, username):
     with app.app_context():
