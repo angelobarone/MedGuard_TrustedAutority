@@ -103,7 +103,9 @@ def addauthuser():
 def settoken():
     data = request.get_json()
     username = data.get("username")
+    print("L'utente: " + username + " sta richiedendo il token.")
     user_id = validate_user(app, username)
+    print("L'utente: " + username + " ha un id: " + str(user_id))
     if user_id:
         token = token_manager.generate_token(user_id)
         return jsonify({"success": True, "token": token})
