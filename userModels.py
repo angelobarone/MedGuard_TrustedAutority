@@ -15,13 +15,19 @@ class User(db.Model):
 
 def initialize_database(app):
     with app.app_context():
-        for _ in range(10):
-            username = fake.user_name()
-            password = fake.password(length=10)
-            user = User(username=username)
-            user.password_hash = generate_password_hash(password)
-            db.session.add(user)
-            db.session.commit()
+        username1 = "angelo"
+        password1 = "barone"
+        user = User(username=username1)
+        user.password_hash = generate_password_hash(password1)
+        db.session.add(user)
+        db.session.commit()
+        #for _ in range(10):
+         #   username = fake.user_name()
+          #  password = fake.password(length=10)
+           # user = User(username=username)
+            #user.password_hash = generate_password_hash(password)
+            #db.session.add(user)
+            #db.session.commit()
 
 def check_database(app):
     print("Controllo la presenza del database...")
