@@ -1,6 +1,6 @@
-# MedGuard - Thrusted Authority
+# MedGuard - Trusted Authority
 
-La Thrusted Authority o **Key Server** è il modulo del progetto **MedGuard** che gestisce la distribuzione delle chiavi di cifratura e decifratura:
+La Trusted Authority o **Key Server** è il modulo del progetto **MedGuard** che gestisce la distribuzione delle chiavi di cifratura e decifratura:
 
 - Fornisce la **chiave pubblica** ai client (ospedali)
 - Permette ai client autorizzati (ricercatori) di usare la **chiave privata** per decifrare i risultati aggregati
