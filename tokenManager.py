@@ -77,7 +77,6 @@ class TokenManager:
         return len(expired_tokens)
 
     def _verify_token_integrity(self, token: str, expected_user_id: int) -> bool:
-        """Verifica l'integrità del token usando HMAC"""
         try:
             parts = token.split('|')
             if len(parts) != 4:
@@ -101,19 +100,12 @@ class TokenManager:
                 hashlib.sha256
             ).hexdigest()[:16]
 
-            # DEBUG
-            print(f"🔍 Data verificata: '{data}'")
-            print(f"🔍 Firma ricevuta: {received_signature}")
-            print(f"🔍 Firma attesa: {expected_signature}")
-
-            # Confronto sicuro
             return secrets.compare_digest(received_signature, expected_signature)
 
         except (ValueError, IndexError):
             return False
 
     def _remove_token(self, token: str):
-        """Rimuove un token in modo sicuro"""
         if token in self.tokens:
             del self.tokens[token]
 
